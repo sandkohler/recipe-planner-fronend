@@ -27,18 +27,19 @@ function AddRecipe() {
     } = useForm()
 
     const addIngredient = () => {
-        setFormData(({
+        setFormData({
             ...formData, ingredients: [
                 ...formData.ingredients, {
                     listId: listId,
-                    ingredient: '',
+                    name: '',
                     unit: 'PIECE',
-                    quantity: ''
+                    amount: 0,
+                    comment: ''
                 }
             ]
-        }))
-        setListId(listId + 1)
-    }
+        });
+        setListId(listId + 1);
+    };
 
     const updateIngredient = (ingredientObj) => {
         const updatedIngredients = formData.ingredients.map((ingredient) => {
@@ -65,20 +66,34 @@ function AddRecipe() {
     />)
 
     const onSubmit = async (data) => {
+        const ingredients = formData.ingredients.map((ingredient) => {
+            if (!ingredient.name || ingredient.amount <= 0) {
+                throw new Error("All ingredients must have a valid name and amount.");
+            }
+            return {
+                name: ingredient.name,
+                unit: ingredient.unit,
+                amount: ingredient.amount,
+                comment: ingredient.comment,
+            };
+        });
+
         const recipeData = {
-            ...formData,
             name: data.name,
             description: data.description,
-            imageUrl: data.imageUrl
-        }
+            imageUrl: data.imageUrl,
+            ingredients: ingredients,
+        };
+
         try {
+            console.log("recipeData: ", recipeData);
             await axios.post(baseURL, recipeData);
             alert('Recipe added successfully!');
         } catch (error) {
             console.error('Error adding recipe:', error);
             alert('Failed to add recipe.');
         }
-    }
+    };
 
     return (
         <>
@@ -105,6 +120,7 @@ function AddRecipe() {
                             <Col>Ingredient</Col>
                             <Col>Unit</Col>
                             <Col>Quantity</Col>
+                            <Col>Comment</Col>
                             <Col xs={1}></Col>
                         </Row>
                         <hr />
